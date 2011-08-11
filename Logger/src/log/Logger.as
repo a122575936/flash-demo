@@ -36,7 +36,7 @@ package log
 			// 提取函数名
 			var funcName:String = tmp[0].split(' ').pop();
 			// 提取行号
-			s = tmp[1].split(':').pop();
+			s = tmp[1].split('\\').pop();
 			var lineNo:String = s.split(']').shift();
 			// 输出
 			trace(level, '[' +funcName + ':' + lineNo + ']', args);
