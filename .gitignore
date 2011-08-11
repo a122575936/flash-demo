@@ -3,7 +3,8 @@ db/*.sqlite3
 log/*.log
 tmp/
 .metadata/
-FMimutes/
+fminutes/
+warProject/
 Pirate/
 */bin-debug/
 */html-template/

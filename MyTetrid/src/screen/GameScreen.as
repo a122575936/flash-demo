@@ -10,9 +10,18 @@ package screen
 	import tetrad.Tetrad;
 	
 	import ultis.Color;
+	import ultis.SpriteUtils;
 
 	public class GameScreen extends Sprite
 	{
+		/**
+		 *游戏区域显示sprite 
+		 */
+		private var _gameSp:Sprite;
+		/**
+		 *下一个tetrad显示sprite 
+		 */
+		private var _nextTetradSp:Sprite;
 		/**
 		 *游戏界面的方块存储数组
 		 * 宽和高由blockWildth and blockHeight决定
@@ -33,7 +42,14 @@ package screen
 		 *所有添加到游戏区域的tetrad保存在一个数组 
 		 */
 		private var _tetradArray:Array;
+		/**
+		 *当前的tetrad 
+		 */
 		private var _tetrad:Tetrad;
+		/**
+		 *下一个tetrad 
+		 */
+		private var _nextTetrad:Tetrad;
 		/**
 		 *下按键的keycode 
 		 */
@@ -83,12 +99,20 @@ package screen
 		protected function onAddToStage(event:Event):void
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, onAddToStage);
+			_gameTimer = new Timer(500);
+			_gameSp = new Sprite();
+			_nextTetradSp = new Sprite();
+			stage.addChild(_gameSp);
+			stage.addChild(_nextTetradSp);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			_gameTimer.addEventListener(TimerEvent.TIMER, onGameTimer);
+			_gameTimer.start();
 			init();
 		}
 		
 		protected function init():void
 		{
-			_gameTimer = new Timer(2000);
+	
 			_tetradArray  = new Array();
 			_blockArray = new Array(_blockHeight);
 			for (var i:int = 0; i < _blockHeight; i++) 
@@ -102,9 +126,7 @@ package screen
 			
 			_tetrad = Tetrad.createTetrad();
 			initTetradPos(_tetrad);
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-			_gameTimer.addEventListener(TimerEvent.TIMER, onGameTimer);
-			_gameTimer.start();
+			_nextTetrad = Tetrad.createTetrad();
 		}
 			
 		protected function onKeyDown(event:KeyboardEvent):void
@@ -179,6 +201,44 @@ package screen
 		private function updateGameScreen():void
 		{
 			clearScreen();
+			drawGameSp();
+			drawNextTetradSp();
+			_nextTetradSp.x = _gameSp.x + _gameSp.width + 20;
+			_nextTetradSp.y = _gameSp.y + 20;
+		}
+		
+		/**
+		 *在游戏区域旁显示下一个tetrad 
+		 * 
+		 */
+		protected function drawNextTetradSp():void
+		{
+			for (var i:int = 0; i < 4; i++) 
+			{
+				for (var j:int = 0; j < 4; j++) 
+				{
+					if(_nextTetrad.shapeArray[i][j] == 0){//添加空白方格
+						var newBrick2:Sprite = this.drawBrick(0xc0c0c0);
+						newBrick2.x = j * _blockSize;
+						newBrick2.y = i * _blockSize;
+						_nextTetradSp.addChild(newBrick2);
+					}else
+					{
+						var newBrick:Sprite = this.drawBrick(_nextTetrad.color);
+						newBrick.x = j * _blockSize;
+						newBrick.y = i * _blockSize;
+						_nextTetradSp.addChild(newBrick);
+					}
+				}
+			}	
+		}
+		
+		/**
+		 *显示游戏区域 
+		 * 
+		 */
+		protected function drawGameSp():void
+		{
 			for (var i:int = 0; i < _blockHeight; i++ ) {
 				var clearState:int = 0;
 				for (var j:int = 0; j < _blockWildth; j++ ) {
@@ -190,14 +250,14 @@ package screen
 						newBrick2.x = j * _blockSize;
 						newBrick2.y = i * _blockSize;
 						_tetradArray.push(newBrick2);
-						addChild(newBrick2);
+						_gameSp.addChild(newBrick2);
 					}else if (_blockArray[i][j] == 2) {//addChild已经下落的方格
 						clearState++;
 						var newBrick3:Sprite = this.drawBrick(Color.black);
 						newBrick3.x = j * _blockSize;
 						newBrick3.y = i * _blockSize;
 						_tetradArray.push(newBrick3);
-						addChild(newBrick3);
+						_gameSp.addChild(newBrick3);
 					}
 					//把Tetris数组转换并addchild到舞台
 					if (i < _tetrad.y + _tetrad.shapeArray.length
@@ -209,7 +269,7 @@ package screen
 						{
 							newBrick.graphics.beginFill(0x000000);
 							_tetradArray.push(newBrick);
-							addChild(newBrick);
+							_gameSp.addChild(newBrick);
 						}
 					}               
 				}
@@ -244,20 +304,15 @@ package screen
 		 */
 		private function clearScreen():void
 		{
-			//删除所有tetrad
-			if (_tetradArray.length > 0) {
-				for ( i = 0; i < _tetradArray.length; i++ ) {
-					removeChild(_tetradArray[i]);
-				}
-				_tetradArray = [];
-			}      
+			ultis.SpriteUtils.removeAllChild(_nextTetradSp);
+			ultis.SpriteUtils.removeAllChild(_gameSp);
 			//game over
 			for (var i:int = 0; i < _blockWildth; i++ ) {
 				if (_blockArray[0][i] == 2
 					|| _blockArray[1][i] == 2
 					|| _blockArray[2][i] == 2
 					|| _blockArray[3][i] == 2) {
-					init();
+					init();			
 				}
 			}
 		}
@@ -301,7 +356,8 @@ package screen
 					}
 				}
 			}	
-			_tetrad = Tetrad.createTetrad();
+			_tetrad = _nextTetrad;
+			_nextTetrad = Tetrad.createTetrad();
 			initTetradPos(_tetrad);
 		}
 		
@@ -403,7 +459,7 @@ package screen
 			}
 			
 			_spaceDown = 0;
-			for ( j = 3; j>1;j-- ) {
+			for ( j = 3; j > 1; j-- ) {
 				for ( i = 0; i <4; i++ ) {
 					if (_tetrad.shapeArray[j][i] == 1 ) tempint3++;
 				}

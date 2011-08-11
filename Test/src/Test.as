@@ -76,7 +76,8 @@ package {
 			clearTetris();//构建世界前先清屏
 			for (var i:int = 0; i <20; i++ ) {
 				var clearState:int = 0;
-				for (var j:int = 0; j <10; j++ ) {
+				for (var j:int = 0; j <10; j++ ) 
+				{
 					var newBrick:Sprite = this.drawBrick(0x000000);
 					newBrick.x = j * brickWH;
 					newBrick.y = i * brickWH;
