@@ -32,9 +32,7 @@
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
-  <applications>
-    <application path="RoolContainerDemo.as"/>
-  </applications>
+  <applications/>
   <modules/>
   <buildCSSFiles/>
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
